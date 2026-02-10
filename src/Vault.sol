@@ -382,6 +382,22 @@ contract Vault {
         return emergencyUnlockTime - block.timestamp;
     }
 
+    function depositWithLockTime(uint256 lockTime)
+    external
+    payable
+    whenNotPaused
+    validDepositAmount(msg.value)
+    validUnlockTime(block.timestamp + lockTime)
+    {
+    uint256 userDeposit = deposits[msg.sender];
+    deposits[msg.sender] = userDeposit + msg.value;
+    depositTimestamps[msg.sender] = block.timestamp + lockTime;
+    totalDeposits += msg.value;
+
+    emit Deposited(msg.sender, msg.value);
+    }
+
+
     // ============ UTILITY FUNCTIONS ============
     /**
      * @dev Checks if user can deposit (gas optimized)
@@ -434,6 +450,8 @@ contract Vault {
         (bool success, ) = payable(to).call{value: amount}("");
         return success;
     }
+
+    
 
     // ============ EVENTS ============
     // Events are already defined at the top of the contract
